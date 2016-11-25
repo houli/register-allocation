@@ -12,4 +12,5 @@ compile: build
 
 clean:
 	rm -f TastierProject.s
+	rm -f Tastier.s
 	rm -rf generated/
