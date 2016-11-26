@@ -1,16 +1,15 @@
 CSHARPCOMPILER = dmcs
 
-build: Tastier.ATG
+build: src
 	mkdir -p generated
-	mono Coco.exe -o generated -namespace Tastier Tastier.ATG
-	$(CSHARPCOMPILER) Tastier.cs CodeGen.cs SymTab.cs generated/*.cs -out:tcc.exe
+	mono bin/Coco.exe -frames src/frame -o generated -namespace Tastier src/Tastier.ATG
+	$(CSHARPCOMPILER) src/*.cs generated/*.cs -out:bin/tcc.exe
 
 compile: build
-	rm -f TastierProject.s
-	mono tcc.exe TastierProgram.TAS > Tastier.s
-	cat TastierProjectHeader.s Tastier.s TastierProjectFooter.s > TastierProject.s
+	mono bin/tcc.exe test/TastierProgram.TAS > generated/Tastier.s
+	cat src/asm/TastierProjectHeader.s generated/Tastier.s src/asm/TastierProjectFooter.s > bin/TastierProject.s
 
 clean:
-	rm -f TastierProject.s
-	rm -f Tastier.s
+	rm -f bin/TastierProject.s
+	rm -f bin/tcc.exe
 	rm -rf generated/

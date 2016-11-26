@@ -1,4 +1,3 @@
 generated
-TastierProject.s
-Tastier.s
-tcc.exe
+bin/tcc.exe
+bin/TastierProject.s

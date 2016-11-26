@@ -8,7 +8,7 @@ COMPILER Tastier
 
    public SymbolTable tab;
    public CodeGenerator gen;
-  
+
 /*-------------------------------------------------------------------------------------------*/
 
 CHARACTERS
@@ -275,7 +275,7 @@ Stat                     (. int type; string name; Obj obj; int reg; .)
   Ident<out name> ';'    (.
                             obj = tab.Find(name);
                             if (obj.type == integer) {
-                               gen.ReadInteger(); 
+                               gen.ReadInteger();
                                if (obj.level == 0)
                                   gen.StoreGlobal(0, obj.adr, name);
                                else gen.StoreLocal(0, tab.curLevel-obj.level, obj.adr, name);
@@ -289,7 +289,7 @@ Stat                     (. int type; string name; Obj obj; int reg; .)
          out type>       (.
                             switch (type) {
                                case integer: gen.WriteInteger(reg, false);
-                                             break; 
+                                             break;
                                case boolean: gen.WriteBoolean(false);
                                              break;
                             }
