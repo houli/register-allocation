@@ -18,14 +18,13 @@ class Node{
 	public void RemoveNode(Node node){
 		if (neighbours.Contains(node)) {
 			neighbours.Remove(node);
-			neighbours = new List<Node>();
 		}
 	}
 
 	public List<Node> GetNeighbours(){
 		return neighbours;
 	}
-	
+
 	public int NumNeighbours(){
 		return neighbours.Count;
 	}
@@ -34,11 +33,12 @@ class Node{
 class Graph
 {
 	private List<Node> graph;
+	
 
 	public Graph() {
 		this.graph = new List<Node>();
 	}
-
+	
 	public int Size(){
 		return this.graph.Count;
 	}
@@ -79,21 +79,29 @@ class Graph
 			Console.WriteLine("");
 		}
 	}
-	
-	
-    public Node degreeLtReg(int val){
+
+	public Node FindElm(string name){
+		foreach (var node in graph)
+		{
+			if(node.name == name){
+				return node;
+			}
+		}
+		return null;
+	}
+
+
+    public Node DegreeLtReg(int val){
 		int i = graph.Count-1;
 		int[] temp = new int[graph.Count];
 		foreach (var node in graph)
 		{
-			Console.WriteLine(node.name+" ->"+node.NumNeighbours());
 			temp[i] = node.NumNeighbours();
 			i--;
 		}
-		Console.WriteLine("------------");
-		
+
 		int degree = temp.Min();
-		
+
 		if(degree < val){
 			int lowestNode = Array.IndexOf(temp, temp.Min());
 			return graph.ElementAt(lowestNode);
@@ -133,39 +141,48 @@ class Graph
 		graph.CreateEdge(k,d);
 		graph.CreateEdge(k,b);
 		graph.CreateEdge(b,c);
+		graph.CreateEdge(b,e);
 		graph.CreateEdge(m,b);
 		graph.CreateEdge(m,d);
 		graph.CreateEdge(m,c);
 		graph.CreateEdge(f,e);
 		graph.CreateEdge(f,m);
-		
-		graph.PrintGraph();
+		graph.CreateEdge(d,b);
 
 
 		// Chaitin's Algorithm
-		
+
 		Stack<Node> stack = new Stack<Node>();
 		Stack<Node> spillList = new Stack<Node>();
-		
-		while(graph.Size() > 0){
-			Node node = graph.degreeLtReg(MachineRegisters);
+
+		Graph replicaGraph = new Graph(graph); // Need to copy to new graph
+
+		while(replicaGraph.Size() > 0){
+			Node node = replicaGraph.DegreeLtReg(MachineRegisters);
 			if(node != null){
 				stack.Push(node);
-				graph.RemoveEdge(node);
+				replicaGraph.RemoveEdge(node);
 			}
 			else{
-				
+
 			}
 		}
 		if(spillList.Count == 0){
+//			int color = 1;
 			while(stack.Count > 0){
+				Console.WriteLine(graph.Size());
+////			graph.FindElm(stack.Pop().name);
 				Console.WriteLine(stack.Pop().name);
+//				foreach(var neighbour in (graph.FindElm(stack.Pop().name)).GetNeighbours())
+//				{
+//					Console.Write(neighbour.name);
+//				}
 			}
 		}
 		else{
 			// Interference magic to happen here :)
 		}
-		
+
 	}
 
 }
