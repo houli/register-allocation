@@ -15,6 +15,11 @@ namespace Tastier {
                     foreach (var tuple in parser.program) {
                         Console.WriteLine(tuple);
                     }
+                    // Build blocks
+                    // Build liveness information from blocks
+                    // Build interference graph
+                    RegisterAllocator.colour(RegisterAllocator.example());
+                    // Code generation
                     Environment.Exit(0);
                 } else {
                     Console.WriteLine("{0} compilation error(s)", parser.errors.count);

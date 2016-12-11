@@ -6,8 +6,8 @@ build: src
 	$(CSHARPCOMPILER) src/*.cs generated/*.cs -out:bin/tcc.exe
 
 compile: build
-	mono bin/tcc.exe test/TastierProgram.TAS > bin/Tastier.s
-	cat src/asm/TastierProjectHeader.s bin/Tastier.s src/asm/TastierProjectFooter.s > bin/TastierProject.s
+	mono bin/tcc.exe test/TastierProgram.TAS
+	# cat src/asm/TastierProjectHeader.s bin/Tastier.s src/asm/TastierProjectFooter.s > bin/TastierProject.s
 
 clean:
 	rm -f bin/Tastier.s
