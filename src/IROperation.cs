@@ -12,6 +12,7 @@ namespace Tastier {
         LABEL,
         LEQ,
         LOAD,
+        LOADC,
         LSS,
         MOD,
         MUL,
@@ -25,6 +26,7 @@ namespace Tastier {
         WRITEBOOL,
         WRITEINT,
         WRITELNBOOL,
-        WRITELNINT
+        WRITELNINT,
+        ZATTACK
     };
 }
