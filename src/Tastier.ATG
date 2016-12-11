@@ -1,5 +1,19 @@
 COMPILER Tastier
 
+/*-------------------------------------------------------------------------------------------*/
+
+int labelSeed = 0;
+string genLabel() {
+    return $"$L{labelSeed++}";
+}
+
+int temporarySeed = 0;
+string genTemp() {
+    return $"$T{temporarySeed++}";
+}
+
+
+
    const int // object kinds
       var = 0, proc = 1;
 
@@ -52,17 +66,16 @@ AddOp<out IROperation op>
 
 /*-------------------------------------------------------------------------------------------*/
 
-Expr<out int reg,        // load value of Expr into register
-     out int type>       (. int typeR, regR; IROperation op; .)
-  = SimExpr<out reg,
+Expr<out string temp,        // load value of Expr into register
+     out int type>       (. int typeR; string tempR; IROperation op; .)
+  = SimExpr<out temp,
             out type>
   [ RelOp<out op>
-    SimExpr<out regR,
+    SimExpr<out tempR,
             out typeR>   (.
                             if (type == typeR) {
                                type = boolean;
-                               // gen.RelOp(op, reg, regR);
-                               program.Add(new IRTuple(op));
+                               program.Add(new IRTupleRelOp(op, temp, tempR));
                             }
                             else SemErr("incompatible types");
                          .)
@@ -71,55 +84,55 @@ Expr<out int reg,        // load value of Expr into register
 
 /*-------------------------------------------------------------------------------------------*/
 
-Primary<out int reg,     // load Primary into register
-        out int type>    (. int n; Obj obj; string name; .)
+Primary<out string temp, // load Primary into register
+        out int type>    (. Obj obj; string name; .)
 =                        (.
                             type = undef;
-                            reg = gen.GetRegister();
+                            temp = genTemp();
                          .)
   ( Ident<out name>      (.
                             obj = tab.Find(name); type = obj.type;
                             if (obj.kind == var) {
                                if (obj.level == 0)
-                                  program.Add(new IRTuple(IROperation.LOAD));
-                                  // gen.LoadGlobal(reg, obj.adr, name);
+                                  program.Add(new IRTupleLoadStore(IROperation.LOAD, temp, name, obj.adr, -1));
                                else
-                                  program.Add(new IRTuple(IROperation.LOAD));
-                                  // gen.LoadLocal(reg, tab.curLevel-obj.level, obj.adr, name);
+                                  program.Add(new IRTupleLoadStore(IROperation.LOAD, temp, name, obj.adr, tab.curLevel - obj.level));
                                if (type == boolean)
-                               // reset Z flag in CPSR
-                                  gen.ResetZ(reg);
+                                  // reset Z flag in CPSR
+                                  program.Add(new IRTuple(IROperation.ZATTACK));
                             }
                             else SemErr("variable expected");
                          .)
 
   | number               (.
                             type = integer;
-                            n = Convert.ToInt32(t.val);
-                            // gen.LoadConstant(reg, n);
+                            program.Add(new IRTupleMove(IROperation.LOADC, t.val, temp));
                          .)
 
   | '-'
-    Primary<out reg,
+    Primary<out temp,
             out type>     (.
-                            if (type == integer)
-                               program.Add(new IRTuple(IROperation.NEG));
-                               // gen.NegateValue(reg);
-                            else SemErr("integer type expected");
+                            if (type == integer) {
+                               program.Add(new IRTupleMove(IROperation.NEG, temp, temp));
+                            } else {
+                               SemErr("integer type expected");
+                            }
                          .)
 
   | "true"               (.
                                type = boolean;
-                               // gen.LoadTrue(reg);
+                               program.Add(new IRTupleMove(IROperation.LOADC, "1", temp));
+                               program.Add(new IRTuple(IROperation.ZATTACK));
                          .)
 
   | "false"              (.
                                type = boolean;
-                               // gen.LoadFalse(reg);
+                               program.Add(new IRTupleMove(IROperation.LOADC, "0", temp));
+                               program.Add(new IRTuple(IROperation.ZATTACK));
                          .)
 
   | '('
-    Expr<out reg,
+    Expr<out temp,
          out type>
     ')'
 
@@ -170,24 +183,18 @@ ProcDecl<string progName>
      ProcDecl<progName>
      }                   (.
                             if (procName == "main") {
-                               // gen.Label("Main", "Body");
-                               program.Add(new IRTuple(IROperation.LABEL));
+                               program.Add(new IRTupleLabel(IROperation.LABEL, "MainBody"));
                             } else {
-                               // gen.ProcNameComment(procName);
-                               // gen.Label(procName, "Body");
-                               program.Add(new IRTuple(IROperation.LABEL));
+                               program.Add(new IRTupleLabel(IROperation.LABEL, $"{procName}Body"));
                             }
                          .)
      Stat { Stat }
   '}'                    (.
                             if (procName == "main") {
-                               // gen.StopProgram(progName);
-                               // gen.Enter("Main", tab.curLevel, tab.topScope.nextAdr);
                                program.Add(new IRTuple(IROperation.END));
                             } else {
-                               // gen.Return(procName);
-                               // gen.Enter(procName, tab.curLevel, tab.topScope.nextAdr);
                                program.Add(new IRTuple(IROperation.RET));
+                               program.Add(new IRTupleEnter(procName, tab.curLevel, tab.topScope.nextAdr));
                             }
                             tab.CloseScope();
                          .)
@@ -208,108 +215,97 @@ RelOp<out IROperation op>
 
 /*-------------------------------------------------------------------------------------------*/
 
-SimExpr<out int reg,     //load value of SimExpr into register
-        out int type>    (. int typeR, regR; IROperation op; .)
-= Term<out reg,
+SimExpr<out string temp, //load value of SimExpr into register
+        out int type>    (. int typeR; string tempR; IROperation op; .)
+= Term<out temp,
        out type>
   { AddOp<out op>
-    Term<out regR,
+    Term<out tempR,
          out typeR>      (.
-                            if (type == integer && typeR == integer)
-                               // gen.AddOp(op, reg, regR);
-                               program.Add(new IRTuple(op));
-                            else SemErr("integer type expected");
+                            if (type == integer && typeR == integer) {
+                               program.Add(new IRTupleBinOp(op, temp, tempR));
+                            } else {
+                               SemErr("integer type expected");
+                            }
                          .)
   }
 .
 
 /*-------------------------------------------------------------------------------------------*/
 
-Stat                     (. int type; string name; Obj obj; int reg; .)
+Stat                     (. int type; string name; Obj obj; string temp; .)
 = Ident<out name>        (. obj = tab.Find(name); .)
   ( ":="                 (.
                             if (obj.kind != var)
                                SemErr("cannot assign to procedure");
                          .)
-    Expr<out reg,
+    Expr<out temp,
          out type> ';'   (.
                             if (type == obj.type) {
                                if (obj.level == 0) {
-                                  // gen.StoreGlobal(reg, obj.adr, name);
-                                  program.Add(new IRTuple(IROperation.STORE));
+                                  program.Add(new IRTupleLoadStore(IROperation.STORE, temp, name, obj.adr, -1));
                                } else {
-                                  // gen.StoreLocal(reg, tab.curLevel-obj.level, obj.adr, name);
-                                  program.Add(new IRTuple(IROperation.STORE));
+                                  program.Add(new IRTupleLoadStore(IROperation.STORE, temp, name, obj.adr, tab.curLevel - obj.level));
                                }
                             }
                          .)
   | '(' ')' ';'          (.
-                            if (obj.kind == proc)
-                               // gen.Call(name);
-                               program.Add(new IRTuple(IROperation.CALL));
-                            else SemErr("object is not a procedure");
+                            if (obj.kind == proc) {
+                               program.Add(new IRTupleLabel(IROperation.CALL, name));
+                            } else {
+                               SemErr("object is not a procedure");
+                            }
                          .)
   )
 
-| "if"                   (. int l1, l2; l1 = 0; .)
-  Expr<out reg,
+| "if"                   (. string l1, l2; l1 = ""; .)
+  Expr<out temp,
        out type>         (.
                             if (type == boolean) {
-                               l1 = gen.NewLabel();
-                               // gen.BranchFalse(l1);
-                               program.Add(new IRTuple(IROperation.BFALSE));
+                               l1 = genLabel();
+                               program.Add(new IRTupleLabel(IROperation.BFALSE, l1));
                             }
                             else SemErr("boolean type expected");
                          .)
       Stat               (.
-                            l2 = gen.NewLabel();
-                            // gen.Branch(l2);
-                            // gen.Label(l1);
-                            program.Add(new IRTuple(IROperation.BRANCH));
-                            program.Add(new IRTuple(IROperation.LABEL));
+                            l2 = genLabel();
+                            program.Add(new IRTupleLabel(IROperation.BRANCH, l2));
+                            program.Add(new IRTupleLabel(IROperation.LABEL, l1));
                          .)
       [ "else"
       Stat
       ]               	 (.
-                            // gen.Label(l2);
-                            program.Add(new IRTuple(IROperation.LABEL));
+                            program.Add(new IRTupleLabel(IROperation.LABEL, l2));
                          .)
 
 | "while"                (.
-                            int l1, l2;
-                            l1 = gen.NewLabel();
-                            // gen.Label(l1);
-                            program.Add(new IRTuple(IROperation.LABEL));
-                            l2=0;
+                            string l1, l2;
+                            l1 = genLabel();
+                            program.Add(new IRTupleLabel(IROperation.LABEL, l1));
+                            l2 = "";
                          .)
-  Expr<out reg,
+  Expr<out temp,
        out type>         (.
                             if (type == boolean) {
-                               l2 = gen.NewLabel();
-                               // gen.BranchFalse(l2);
-                               program.Add(new IRTuple(IROperation.BFALSE));
+                               l2 = genLabel();
+                               program.Add(new IRTupleLabel(IROperation.BFALSE, l2));
                             }
                             else SemErr("boolean type expected");
                          .)
    Stat                  (.
-                            // gen.Branch(l1);
-                            // gen.Label(l2);
-                            program.Add(new IRTuple(IROperation.BRANCH));
-                            program.Add(new IRTuple(IROperation.LABEL));
+                            program.Add(new IRTupleLabel(IROperation.BRANCH, l1));
+                            program.Add(new IRTupleLabel(IROperation.LABEL, l2));
                          .)
 
 | "read"
   Ident<out name> ';'    (.
                             obj = tab.Find(name);
                             if (obj.type == integer) {
-                               // gen.ReadInteger();
                                program.Add(new IRTuple(IROperation.READ));
                                if (obj.level == 0) {
-                                  // gen.StoreGlobal(0, obj.adr, name);
-                                  program.Add(new IRTuple(IROperation.STORE));
+                                  program.Add(new IRTupleLoadStore(IROperation.STORE, "$R0", name, obj.adr, -1));
                                } else {
-                                  // gen.StoreLocal(0, tab.curLevel-obj.level, obj.adr, name);
-                                  program.Add(new IRTuple(IROperation.STORE));
+                                  program.Add(new IRTupleLoadStore(IROperation.STORE, "$R0", name, obj.adr, tab.curLevel - obj.level));
                                }
                             }
                             else SemErr("integer type expected");
@@ -317,37 +313,32 @@ Stat                     (. int type; string name; Obj obj; int reg; .)
 
 | "write"                (. string text; .)
   (
-    Expr<out reg,
+    Expr<out temp,
          out type>       (.
                             switch (type) {
                                case integer:
-                                 // gen.WriteInteger(reg, false);
-                                 program.Add(new IRTuple(IROperation.WRITEINT));
+                                 program.Add(new IRTupleWriteLocation(IROperation.WRITEINT, temp));
                                  break;
                                case boolean:
-                                 // gen.WriteBoolean(false);
                                  program.Add(new IRTuple(IROperation.WRITEBOOL));
                                  break;
                             }
                          .)
   | String<out text>     (.
-                            // gen.WriteString(text);
-                            program.Add(new IRTuple(IROperation.WRITE));
+                            program.Add(new IRTupleWriteLiteral(IROperation.WRITE, text.Replace("\"", "")));
                          .)
   )
   ';'
 
 | "writeln"
   // note - for strings use write with \n in text
-  Expr<out reg,
+  Expr<out temp,
        out type>           (.
                               switch (type) {
                                  case integer:
-                                   // gen.WriteInteger(reg, true);
-                                   program.Add(new IRTuple(IROperation.WRITELNINT));
+                                   program.Add(new IRTupleWriteLocation(IROperation.WRITELNINT, temp));
                                    break;
                                  case boolean:
-                                   // gen.WriteBoolean(true);
                                    program.Add(new IRTuple(IROperation.WRITELNBOOL));
                                    break;
                               }
@@ -374,17 +365,16 @@ Tastier                  (. string progName; .)
 
 /*-------------------------------------------------------------------------------------------*/
 
-Term<out int reg,        // load value of Term into register
-     out int type>       (. int typeR, regR; IROperation op; .)
-  = Primary<out reg,
+Term<out string temp,    // load value of Term into register
+     out int type>       (. int typeR; string tempR; IROperation op; .)
+  = Primary<out temp,
             out type>
   { MulOp<out op>
-    Primary<out regR,
+    Primary<out tempR,
             out typeR>
                          (.
                             if (type == integer && typeR == integer)
-                               // gen.MulOp(op, reg, regR);
-                               program.Add(new IRTuple(op));
+                               program.Add(new IRTupleBinOp(op, temp, tempR));
                             else SemErr("integer type expected");
                          .)
   }

@@ -6,6 +6,7 @@ namespace Tastier {
         CALL,
         DIV,
         END,
+        ENTER,
         EQU,
         GEQ,
         GTR,

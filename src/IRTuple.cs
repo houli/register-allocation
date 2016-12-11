@@ -26,16 +26,14 @@ namespace Tastier {
     public class IRTupleBinOp : IRTuple {
         public string src1;
         public string src2;
-        public string dest;
 
-        public IRTupleBinOp(IROperation op, string src1, string src2, string dest) : base(op) {
+        public IRTupleBinOp(IROperation op, string src1, string src2) : base(op) {
             this.src1 = src1;
             this.src2 = src2;
-            this.dest = dest;
         }
 
         public override string ToString() {
-            return $"{{{op}, {src1}, {src2}, {dest}}}";
+            return $"{{{op}, {src1}, {src2}, {src1}}}";
         }
     }
 
@@ -72,31 +70,58 @@ namespace Tastier {
         public string name;
         public int address;
         public int scopeLevel;
-        public bool global;
 
-        public IRTupleLoadStore(IROperation op, string dest, string name, int address, int scopeLevel, bool global) : base(op) {
+        public IRTupleLoadStore(IROperation op, string dest, string name, int address, int scopeLevel) : base(op) {
             this.dest = dest;
             this.name = name;
             this.address = address;
             this.scopeLevel = scopeLevel;
-            this.global = global;
         }
 
         public override string ToString() {
-            return $"{{{op}, {dest}, {name}, {address}, {scopeLevel}, {global}}}";
+            return $"{{{op}, {dest}, {name}, {address}, {scopeLevel}}}";
         }
 
     }
 
-    public class IRTupleReadWrite : IRTuple {
+    public class IRTupleWriteLocation : IRTuple {
         public string location;
 
-        public IRTupleReadWrite(IROperation op, string location) : base(op) {
+        public IRTupleWriteLocation(IROperation op, string location) : base(op) {
             this.location = location;
         }
 
         public override string ToString() {
             return $"{{{op}, {location}}}";
+        }
+    }
+
+    public class IRTupleWriteLiteral : IRTuple {
+        public string literal;
+
+        public IRTupleWriteLiteral(IROperation op, string literal) : base(op) {
+            this.literal = literal;
+        }
+
+        public override string ToString() {
+            return $"{{{op}, \"{literal}\"}}";
+        }
+    }
+
+
+    public class IRTupleEnter : IRTuple {
+        public string name;
+        public int level;
+        public int variableCount;
+
+        public IRTupleEnter(string name, int level, int variableCount) : base(IROperation.ENTER) {
+            this.name = name;
+            this.level = level;
+            this.variableCount = variableCount;
+        }
+
+        public override string ToString() {
+            return $"{{{op}, {name}, {level}, {variableCount}}}";
         }
     }
 }
