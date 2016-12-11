@@ -160,7 +160,6 @@ ProcDecl<string progName>
                                   tab.mainPresent = true;
                                else SemErr("main not at lexic level 0");
                             tab.OpenScope();
-                            program.Add(new IRTuple(IROperation.LABEL));
                          .)
   '(' ')'
   '{'
@@ -170,10 +169,10 @@ ProcDecl<string progName>
      {
      ProcDecl<progName>
      }                   (.
-                            if (procName == "main")
+                            if (procName == "main") {
                                // gen.Label("Main", "Body");
                                program.Add(new IRTuple(IROperation.LABEL));
-                            else {
+                            } else {
                                // gen.ProcNameComment(procName);
                                // gen.Label(procName, "Body");
                                program.Add(new IRTuple(IROperation.LABEL));
