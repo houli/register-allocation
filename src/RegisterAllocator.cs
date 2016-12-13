@@ -60,41 +60,55 @@ namespace Tastier {
             }
         }
 
-        public static Graph example() {
-            // Lecture Example
-            Node g = new Node("G");
-            Node h = new Node("H");
-            Node f = new Node("F");
-            Node e = new Node("E");
-            Node m = new Node("M");
-            Node b = new Node("B");
-            Node c = new Node("C");
-            Node d = new Node("D");
-            Node k = new Node("K");
-            Node j = new Node("J");
+        // Graph build will take a Dictionary of Tuple to List[]
+        public static Graph GraphBuilder() {
 
-            // Edges
             Graph graph = new Graph();
-            graph.CreateEdge(g, h);
-            graph.CreateEdge(g, k);
-            graph.CreateEdge(g, j);
-            graph.CreateEdge(j, k);
-            graph.CreateEdge(j, h);
-            graph.CreateEdge(j, d);
-            graph.CreateEdge(j, e);
-            graph.CreateEdge(j, f);
-            graph.CreateEdge(k, d);
-            graph.CreateEdge(k, b);
-            graph.CreateEdge(b, c);
-            graph.CreateEdge(b, e);
-            graph.CreateEdge(m, b);
-            graph.CreateEdge(m, d);
-            graph.CreateEdge(m, c);
-            graph.CreateEdge(f, e);
-            graph.CreateEdge(f, m);
-            graph.CreateEdge(d, b);
+            Dictionary<string, Node> createdNodes = new Dictionary<string, Node>();
+            Dictionary<string, List<string>> interferenceList = new Dictionary<string, List<string>>();
+            interferenceList.Add("tuple1", (new List<string> { "G", "H"}));
+            interferenceList.Add("tuple2", (new List<string> { "G", "K", "J"}));
+            interferenceList.Add("tuple3", (new List<string> { "J", "H"}));
+            interferenceList.Add("tuple4", (new List<string> { "J", "D"}));
+            interferenceList.Add("tuple5", (new List<string> { "J", "F", "E"}));
+            interferenceList.Add("tuple6", (new List<string> { "D", "B", "M"}));
+            interferenceList.Add("tuple7", (new List<string> { "C", "M"}));
+            interferenceList.Add("tuple8", (new List<string> { "K", "B", "D"}));
+            interferenceList.Add("tuple9", (new List<string> { "F", "M"}));
+            interferenceList.Add("tuple10", (new List<string> { "B", "C"}));
+            interferenceList.Add("tuple11", (new List<string> { "B", "E"}));
 
+            foreach(var item in interferenceList){
+                var interferences = item.Value;
+                for (int i = 0; i < interferences.Count-1 ; i++) {
+                    foreach(var j in interferences) {
+                        BuildEdges(graph,createdNodes, interferences[i], j);
+                    }
+                }
+            }
+            
             return graph;
         }
+
+        private static void BuildEdges(Graph graph, Dictionary<string, Node> createdNodes, string a, string b) {
+            Node node1, node2;
+            if (a != b){
+                node1 = GetNodeRef(createdNodes,a);
+                node2 = GetNodeRef(createdNodes,b);
+                graph.CreateEdge(node1,node2);
+            }
+        }
+
+        public static Node GetNodeRef(Dictionary<string, Node> createdNodes, string val) {
+            Node node;
+            if(createdNodes.ContainsKey(val)){
+                node = createdNodes[val];
+            } else {
+                createdNodes.Add(val, new Node(val));
+                node = createdNodes[val];
+            }
+            return node;
+        }
+
     }
 }

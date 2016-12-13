@@ -18,7 +18,7 @@ namespace Tastier {
                     // Build blocks
                     // Build liveness information from blocks
                     // Build interference graph
-                    RegisterAllocator.colour(RegisterAllocator.example());
+                    RegisterAllocator.colour(RegisterAllocator.GraphBuilder());
                     // Code generation
                     Environment.Exit(0);
                 } else {

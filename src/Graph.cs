@@ -35,6 +35,10 @@ namespace Tastier {
             }
         }
 
+        public bool HasNeighbour(Node node) {
+            return neighbours.Contains(node);
+        }
+
         public List<Node> GetNeighbours() {
             return neighbours;
         }
@@ -73,8 +77,12 @@ namespace Tastier {
             if (!nodes.Contains(Node2)) {
                 nodes.Add(Node2);
             }
-            Node1.AddNeighbour(Node2);
-            Node2.AddNeighbour(Node1);
+            if(!Node1.HasNeighbour(Node2)){
+                Node1.AddNeighbour(Node2);
+            }
+            if(!Node2.HasNeighbour(Node1)){
+                Node2.AddNeighbour(Node1);
+            }
         }
 
         public void RemoveEdge(Node toBeRemoved) {
