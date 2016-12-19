@@ -27,27 +27,33 @@ namespace Tastier {
             leaders[0] = true;
             int k = 0;
             foreach (var statement in statements) {
-                if (IsBranch(statement.op)) {
-                    var ind = FindTargetIndex(((IRTupleLabel)statement).label, statements);
-                    leaders[ind] = true;
-                    leaders[k + 1] = true;
+                if (IsBranch(statement.op) || IsBoundary(statement.op)) {
+                    if (!IsBoundary(statement.op)) {
+                        var ind = FindTargetIndex(((IRTupleLabel)statement).label, statements);
+                        leaders[ind] = true;
+                    }
+                    if (k < statements.Count - 1) {
+                        leaders[k + 1] = true;
+                    }
                 }
                 k++;
             }
 
             int tempid = 0;
-            for (int i = 0; i < leaders.Length; i++) {
-                if (leaders[i]) {
-                    int j;
-                    for (j = i + 1; j < leaders.Length; j++) {
-                        if (leaders[j]) {
-                            var block = new BasicBlock(statements.Skip(i).Take(j - i - 1).ToList(), tempid++);
-                            blocks.Add(block);
-                            break;
-                        }
+            int i = 0;
+            while (i < leaders.Length) {
+                int j;
+                for (j = i + 1; j < leaders.Length; j++) {
+                    if (leaders[j]) {
+                        var block = new BasicBlock(statements.Skip(i).Take(j - i).ToList(), tempid++);
+                        blocks.Add(block);
+                        break;
                     }
-                    i = j;
                 }
+                if (j >= leaders.Length) {
+                    blocks.Add(new BasicBlock(statements.Skip(i).Take(j - i).ToList(), tempid++));
+                }
+                i = j;
             }
             return blocks;
         }
@@ -55,7 +61,10 @@ namespace Tastier {
         private static int FindTargetIndex(string targetLabel, List<IRTuple> statements) {
             int i = 0;
             foreach (var statement in statements) {
-                if (statement is IRTupleLabel && ((IRTupleLabel)statement).label == targetLabel) {
+                if (statement is IRTupleLabel
+                    && statement.op == IROperation.LABEL
+                    && ((IRTupleLabel)statement).label == targetLabel)
+                {
                     return i;
                 }
                 i++;
@@ -63,8 +72,12 @@ namespace Tastier {
             throw new System.IndexOutOfRangeException($"{targetLabel} not found!");
         }
 
-        public static bool IsBranch(IROperation op) {
+        private static bool IsBranch(IROperation op) {
             return op == IROperation.BFALSE || op == IROperation.BRANCH;
+        }
+
+        private static bool IsBoundary(IROperation op) {
+            return op == IROperation.RET || op == IROperation.END;
         }
 
     }
