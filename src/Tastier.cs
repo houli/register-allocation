@@ -12,10 +12,10 @@ namespace Tastier {
                 parser.program = new List<IRTuple>();
                 parser.Parse();
                 if (parser.errors.count == 0) {
-                    foreach (var tuple in parser.program) {
-                        Console.WriteLine(tuple);
+                    List<BasicBlock> blocks = BasicBlock.CreateBlocks(parser.program);
+                    foreach (var block in blocks) {
+                        Console.WriteLine(block);
                     }
-                    // Build blocks
                     // Build liveness information from blocks
                     // Build interference graph
                     RegisterAllocator.colour(RegisterAllocator.GraphBuilder());
