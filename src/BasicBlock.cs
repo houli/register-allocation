@@ -1,22 +1,26 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Tastier {
     public class BasicBlock {
         public List<IRTuple> statements { get; }
+        public List<BasicBlock> successors { get; }
         public int id { get; }
 
         public BasicBlock(List<IRTuple> statements, int id) {
             this.statements = statements;
             this.id = id;
+            this.successors = new List<BasicBlock>();
         }
 
         public override string ToString() {
-            var s = $"Block number: {id}\n\n";
+            var successorStr = "[" + string.Join(", ", successors.Select(i => i.id.ToString()).ToArray()) + "]";
+            var str = $"Block number: {id} Successors: {successorStr}\n\n";
             foreach (var statement in statements) {
-                s += $"{statement}\n";
+                str += $"{statement}\n";
             }
-            return $"{s}\n";
+            return $"{str}\n";
         }
 
         public static List<BasicBlock> CreateBlocks(List<IRTuple> statements) {

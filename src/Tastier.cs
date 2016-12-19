@@ -13,6 +13,7 @@ namespace Tastier {
                 parser.Parse();
                 if (parser.errors.count == 0) {
                     List<BasicBlock> blocks = BasicBlock.CreateBlocks(parser.program);
+                    ControlFlowGraph.BuildCFG(blocks);
                     foreach (var block in blocks) {
                         Console.WriteLine(block);
                     }
