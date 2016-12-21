@@ -32,8 +32,12 @@ namespace Tastier {
             int k = 0;
             foreach (var statement in statements) {
                 if (IsBranch(statement.op) || IsBoundary(statement.op)) {
-                    if (!IsBoundary(statement.op)) {
-                        var ind = FindTargetIndex(((IRTupleLabel)statement).label, statements);
+                    if (statement.op == IROperation.CALL) {
+                        var ind = Utils.FindTargetIndex(((IRTupleLabel)statement).label + "Body", statements);
+                        leaders[ind] = true;
+                    }
+                    else if (!IsBoundary(statement.op)) {
+                        var ind = Utils.FindTargetIndex(((IRTupleLabel)statement).label, statements);
                         leaders[ind] = true;
                     }
                     if (k < statements.Count - 1) {
@@ -62,22 +66,8 @@ namespace Tastier {
             return blocks;
         }
 
-        private static int FindTargetIndex(string targetLabel, List<IRTuple> statements) {
-            int i = 0;
-            foreach (var statement in statements) {
-                if (statement is IRTupleLabel
-                    && statement.op == IROperation.LABEL
-                    && ((IRTupleLabel)statement).label == targetLabel)
-                {
-                    return i;
-                }
-                i++;
-            }
-            throw new System.IndexOutOfRangeException($"{targetLabel} not found!");
-        }
-
         private static bool IsBranch(IROperation op) {
-            return op == IROperation.BFALSE || op == IROperation.BRANCH;
+            return op == IROperation.BFALSE || op == IROperation.BRANCH || op == IROperation.CALL;
         }
 
         private static bool IsBoundary(IROperation op) {

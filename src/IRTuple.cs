@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Tastier {
     public class IRTuple {
         public IROperation op;
@@ -8,6 +10,17 @@ namespace Tastier {
 
         public override string ToString() {
             return $"{{{op}}}";
+        }
+
+        public static void patchFunctions(List<IRTuple> tuples) {
+            for (int i = 0; i < tuples.Count; i++) {
+                var tuple = tuples[i];
+                if (tuple.op == IROperation.ENTER) {
+                    tuples.Remove(tuple);
+                    var index = Utils.FindTargetIndex(((IRTupleEnter)tuple).name + "Body", tuples);
+                    tuples.Insert(index + 1, tuple);
+                }
+            }
         }
     }
 

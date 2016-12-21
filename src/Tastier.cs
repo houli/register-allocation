@@ -12,6 +12,7 @@ namespace Tastier {
                 parser.program = new List<IRTuple>();
                 parser.Parse();
                 if (parser.errors.count == 0) {
+                    IRTuple.patchFunctions(parser.program);
                     List<BasicBlock> blocks = BasicBlock.CreateBlocks(parser.program);
                     ControlFlowGraph.BuildCFG(blocks);
                     foreach (var block in blocks) {
