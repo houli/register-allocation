@@ -30,6 +30,22 @@ namespace Tastier {
             return $"{str}\n";
         }
 
+        public List<string> Uses() {
+            var uses = new List<string>();
+            foreach (var statement in statements) {
+                uses = uses.Union(statement.Uses()).ToList();
+            }
+            return uses;
+        }
+
+        public List<string> Defines() {
+            var defines = new List<string>();
+            foreach (var statement in statements) {
+                defines = defines.Union(statement.Defines()).ToList();
+            }
+            return defines;
+        }
+
         public static List<BasicBlock> CreateBlocks(List<IRTuple> statements) {
             var blocks = new List<BasicBlock>();
             var leaders = new bool[statements.Count];

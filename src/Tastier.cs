@@ -15,12 +15,13 @@ namespace Tastier {
                     IRTuple.patchFunctions(parser.program);
                     List<BasicBlock> blocks = BasicBlock.CreateBlocks(parser.program);
                     ControlFlowGraph.BuildCFG(blocks);
-                    foreach (var block in blocks) {
-                        Console.WriteLine(block);
-                    }
+                    // foreach (var block in blocks) {
+                    //     Console.WriteLine(block);
+                    // }
+                    Interference.calculateLiveness(blocks);
                     // Build liveness information from blocks
                     // Build interference graph
-                    RegisterAllocator.colour(RegisterAllocator.GraphBuilder());
+                    // RegisterAllocator.colour(RegisterAllocator.GraphBuilder());
                     // Code generation
                     Environment.Exit(0);
                 } else {

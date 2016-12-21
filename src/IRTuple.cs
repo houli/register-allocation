@@ -12,6 +12,14 @@ namespace Tastier {
             return $"{{{op}}}";
         }
 
+        public virtual List<string> Uses() {
+            return new List<string>();
+        }
+
+        public virtual List<string> Defines() {
+            return new List<string>();
+        }
+
         public static void patchFunctions(List<IRTuple> tuples) {
             for (int i = 0; i < tuples.Count; i++) {
                 var tuple = tuples[i];
@@ -31,6 +39,14 @@ namespace Tastier {
             this.label = label;
         }
 
+        public override List<string> Uses() {
+            return base.Uses();
+        }
+
+        public override List<string> Defines() {
+            return base.Defines();
+        }
+
         public override string ToString() {
             return $"{{{op}, {label}}}";
         }
@@ -43,6 +59,14 @@ namespace Tastier {
         public IRTupleBinOp(IROperation op, string src1, string src2) : base(op) {
             this.src1 = src1;
             this.src2 = src2;
+        }
+
+        public override List<string> Uses() {
+            return new List<string> {src1, src2};
+        }
+
+        public override List<string> Defines() {
+            return new List<string> {src1};
         }
 
         public override string ToString() {
@@ -59,6 +83,14 @@ namespace Tastier {
             this.src2 = src2;
         }
 
+        public override List<string> Uses() {
+            return new List<string> {src1, src2};
+        }
+
+        public override List<string> Defines() {
+            return base.Defines();
+        }
+
         public override string ToString() {
             return $"{{{op}, {src1}, {src2}}}";
         }
@@ -71,6 +103,18 @@ namespace Tastier {
         public IRTupleMove(IROperation op, string src, string dest) : base(op) {
             this.src = src;
             this.dest = dest;
+        }
+
+        public override List<string> Uses() {
+            if (op == IROperation.NEG) {
+                return new List<string> {src};
+            } else {
+                return new List<string>();
+            }
+        }
+
+        public override List<string> Defines() {
+            return new List<string> {dest};
         }
 
         public override string ToString() {
@@ -91,6 +135,22 @@ namespace Tastier {
             this.scopeLevel = scopeLevel;
         }
 
+        public override List<string> Uses() {
+            if (op == IROperation.LOAD) {
+                return new List<string> {name};
+            } else {
+                return new List<string> {dest};
+            }
+        }
+
+        public override List<string> Defines() {
+            if (op == IROperation.LOAD) {
+                return new List<string> {dest};
+            } else {
+                return new List<string> {name};
+            }
+        }
+
         public override string ToString() {
             return $"{{{op}, {dest}, {name}, {address}, {scopeLevel}}}";
         }
@@ -104,6 +164,14 @@ namespace Tastier {
             this.location = location;
         }
 
+        public override List<string> Uses() {
+            return new List<string> {location};
+        }
+
+        public override List<string> Defines() {
+            return base.Defines();
+        }
+
         public override string ToString() {
             return $"{{{op}, {location}}}";
         }
@@ -114,6 +182,14 @@ namespace Tastier {
 
         public IRTupleWriteLiteral(IROperation op, string literal) : base(op) {
             this.literal = literal;
+        }
+
+        public override List<string> Uses() {
+            return base.Uses();
+        }
+
+        public override List<string> Defines() {
+            return base.Defines();
         }
 
         public override string ToString() {
@@ -131,6 +207,14 @@ namespace Tastier {
             this.name = name;
             this.level = level;
             this.variableCount = variableCount;
+        }
+
+        public override List<string> Uses() {
+            return base.Uses();
+        }
+
+        public override List<string> Defines() {
+            return base.Defines();
         }
 
         public override string ToString() {
