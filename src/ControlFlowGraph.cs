@@ -6,22 +6,31 @@ namespace Tastier {
         public static void BuildCFG(List<BasicBlock> blocks) {
             for (int i = 0; i < blocks.Count; i++) {
                 var lastTuple = blocks[i].statements.Last();
+                BasicBlock foundBlock = null;
                 switch (lastTuple.op) {
                 case IROperation.BRANCH:
-                    blocks[i].successors.Add(FindBlock(blocks, ((IRTupleLabel)lastTuple).label, true));
+                    foundBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label, true);
+                    blocks[i].successors.Add(foundBlock);
+                    foundBlock.predecessors.Add(blocks[i]);
                     break;
 
                 case IROperation.BFALSE:
                     blocks[i].successors.Add(blocks[i + 1]);
-                    blocks[i].successors.Add(FindBlock(blocks, ((IRTupleLabel)lastTuple).label, true));
+                    blocks[i + 1].predecessors.Add(blocks[i]);
+
+                    foundBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label, true);
+                    blocks[i].successors.Add(foundBlock);
+                    foundBlock.predecessors.Add(blocks[i]);
                     break;
 
                 case IROperation.CALL:
                     var calledBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label + "Body", true);
                     blocks[i].successors.Add(calledBlock);
+                    calledBlock.predecessors.Add(blocks[i]);
 
                     var returnBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label, false);
                     returnBlock.successors.Add(blocks[i + 1]);
+                    blocks[i + 1].predecessors.Add(returnBlock);
                     break;
 
                 case IROperation.END:
@@ -30,6 +39,7 @@ namespace Tastier {
 
                 default:
                     blocks[i].successors.Add(blocks[i + 1]);
+                    blocks[i + 1].predecessors.Add(blocks[i]);
                     break;
                 }
             }

@@ -6,17 +6,24 @@ namespace Tastier {
     public class BasicBlock {
         public List<IRTuple> statements { get; }
         public List<BasicBlock> successors { get; }
+        public List<BasicBlock> predecessors { get; }
         public int id { get; }
 
         public BasicBlock(List<IRTuple> statements, int id) {
             this.statements = statements;
-            this.id = id;
             this.successors = new List<BasicBlock>();
+            this.predecessors = new List<BasicBlock>();
+            this.id = id;
         }
 
         public override string ToString() {
-            var successorStr = "[" + string.Join(", ", successors.Select(i => i.id.ToString()).ToArray()) + "]";
-            var str = $"Block number: {id} Successors: {successorStr}\n\n";
+            var successorStr = "[" + string.Join(", ",
+                successors.Select(i => i.id.ToString()).ToArray()) + "]";
+
+            var predecessorStr = "[" + string.Join(", ",
+                predecessors.Select(i => i.id.ToString()).ToArray()) + "]";
+
+            var str = $"Block number: {id} Successors: {successorStr} Predecessors: {predecessorStr}\n\n";
             foreach (var statement in statements) {
                 str += $"{statement}\n";
             }
