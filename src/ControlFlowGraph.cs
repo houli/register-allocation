@@ -8,12 +8,20 @@ namespace Tastier {
                 var lastTuple = blocks[i].statements.Last();
                 switch (lastTuple.op) {
                 case IROperation.BRANCH:
-                    blocks[i].successors.Add(FindBlock(blocks, ((IRTupleLabel)lastTuple).label));
+                    blocks[i].successors.Add(FindBlock(blocks, ((IRTupleLabel)lastTuple).label, true));
                     break;
 
                 case IROperation.BFALSE:
                     blocks[i].successors.Add(blocks[i + 1]);
-                    blocks[i].successors.Add(FindBlock(blocks, ((IRTupleLabel)lastTuple).label));
+                    blocks[i].successors.Add(FindBlock(blocks, ((IRTupleLabel)lastTuple).label, true));
+                    break;
+
+                case IROperation.CALL:
+                    var calledBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label + "Body", true);
+                    blocks[i].successors.Add(calledBlock);
+
+                    var returnBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label, false);
+                    returnBlock.successors.Add(blocks[i + 1]);
                     break;
 
                 case IROperation.END:
@@ -27,11 +35,16 @@ namespace Tastier {
             }
         }
 
-        private static BasicBlock FindBlock(List<BasicBlock> blocks, string label) {
+        private static BasicBlock FindBlock(List<BasicBlock> blocks, string label, bool first) {
             foreach (var block in blocks) {
-                var stmt = block.statements.First();
+                IRTuple stmt = null;
+                if (first) {
+                    stmt = block.statements.First();
+                } else {
+                    stmt = block.statements.Last();
+                }
                 if (stmt is IRTupleLabel
-                    && stmt.op == IROperation.LABEL
+                    && (stmt.op == IROperation.LABEL || stmt.op == IROperation.RET)
                     && ((IRTupleLabel)stmt).label == label) {
                     return block;
                 }

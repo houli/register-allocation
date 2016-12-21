@@ -193,7 +193,7 @@ ProcDecl<string progName>
                             if (procName == "main") {
                                program.Add(new IRTuple(IROperation.END));
                             } else {
-                               program.Add(new IRTuple(IROperation.RET));
+                               program.Add(new IRTupleLabel(IROperation.RET, procName));
                                program.Add(new IRTupleEnter(procName, tab.curLevel, tab.topScope.nextAdr));
                             }
                             tab.CloseScope();
