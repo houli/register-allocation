@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,12 +29,11 @@ namespace Tastier {
 
         private static BasicBlock FindBlock(List<BasicBlock> blocks, string label) {
             foreach (var block in blocks) {
-                foreach (var stmt in block.statements) {
-                    if (stmt is IRTupleLabel
+                var stmt = block.statements.First();
+                if (stmt is IRTupleLabel
                     && stmt.op == IROperation.LABEL
                     && ((IRTupleLabel)stmt).label == label) {
-                        return block;
-                    }
+                    return block;
                 }
             }
             throw new System.IndexOutOfRangeException($"No {label} block found!");
