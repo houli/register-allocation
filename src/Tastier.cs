@@ -15,9 +15,9 @@ namespace Tastier {
                     IRTuple.patchFunctions(parser.program);
                     List<BasicBlock> blocks = BasicBlock.CreateBlocks(parser.program);
                     ControlFlowGraph.BuildCFG(blocks);
-                    // foreach (var block in blocks) {
-                    //     Console.WriteLine(block);
-                    // }
+                    foreach (var block in blocks) {
+                        Console.WriteLine(block);
+                    }
                     Interference.calculateLiveness(blocks);
                     // Build liveness information from blocks
                     // Build interference graph

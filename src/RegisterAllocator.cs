@@ -19,7 +19,8 @@ namespace Tastier {
             if (spillList.Count == 0) {
                 colourGraph(graph, stack);
             } else {
-                // Interference magic to happen here :)
+                // spill each node in spillList everywhere, rebuild the interference graph,
+                // and repeat the procedure
             }
             Console.WriteLine("");
             graph.PrintGraph();
@@ -39,7 +40,8 @@ namespace Tastier {
                 stack.Push(node);
                 graph.RemoveEdge(node);
             } else {
-                // Spill thing
+                spillList.Add(node);
+                graph.RemoveEdge(node);
             }
         }
 
@@ -86,7 +88,7 @@ namespace Tastier {
                     }
                 }
             }
-            
+
             return graph;
         }
 
