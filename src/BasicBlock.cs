@@ -30,6 +30,7 @@ namespace Tastier {
             return $"{str}\n";
         }
 
+        // Get all of the used variables in a block
         public List<string> Uses() {
             var uses = new List<string>();
             foreach (var statement in statements) {
@@ -38,6 +39,7 @@ namespace Tastier {
             return uses;
         }
 
+        // Get all of the defined variables in a block
         public List<string> Defines() {
             var defines = new List<string>();
             foreach (var statement in statements) {
@@ -46,6 +48,7 @@ namespace Tastier {
             return defines;
         }
 
+        // Create a list of basic blocks from a set of tuples
         public static List<BasicBlock> CreateBlocks(List<IRTuple> statements) {
             var blocks = new List<BasicBlock>();
             var leaders = new bool[statements.Count];
@@ -56,14 +59,17 @@ namespace Tastier {
             foreach (var statement in statements) {
                 if (IsBranch(statement.op) || IsBoundary(statement.op)) {
                     if (statement.op == IROperation.CALL) {
+                        // Target of a call is a leader
                         var ind = Utils.FindTargetIndex(((IRTupleLabel)statement).label + "Body", statements);
                         leaders[ind] = true;
                     }
                     else if (!IsBoundary(statement.op)) {
+                        // Target of a branch is a leader
                         var ind = Utils.FindTargetIndex(((IRTupleLabel)statement).label, statements);
                         leaders[ind] = true;
                     }
                     if (k < statements.Count - 1) {
+                        // Tuple following a branch/call is a leader
                         leaders[k + 1] = true;
                     }
                 }
@@ -76,12 +82,14 @@ namespace Tastier {
                 int j;
                 for (j = i + 1; j < leaders.Length; j++) {
                     if (leaders[j]) {
+                        // Create a new block between two leaders
                         var block = new BasicBlock(statements.Skip(i).Take(j - i).ToList(), tempid++);
                         blocks.Add(block);
                         break;
                     }
                 }
                 if (j >= leaders.Length) {
+                    // Create the last block
                     blocks.Add(new BasicBlock(statements.Skip(i).Take(j - i).ToList(), tempid++));
                 }
                 i = j;

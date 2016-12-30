@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 
+// This file contains definitons for the different classes of tuples used
+// as well as methos "Uses" and "Defines" for accessing uses and defines information
+// for any particular tuple
 namespace Tastier {
     public class IRTuple {
         public IROperation op;

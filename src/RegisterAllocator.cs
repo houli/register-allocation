@@ -9,6 +9,8 @@ namespace Tastier {
             // Chaitin's Algorithm
             Stack<Node> stack = new Stack<Node>();
             List<Node> spillList = new List<Node>();
+
+            // Create a copy of our graph to modify
             Graph replicaGraph = replicate(graph);
             graph.PrintGraph();
 
@@ -80,11 +82,11 @@ namespace Tastier {
             interferenceList.Add("tuple10", (new List<string> { "B", "C"}));
             interferenceList.Add("tuple11", (new List<string> { "B", "E"}));
 
-            foreach(var item in interferenceList){
+            foreach (var item in interferenceList) {
                 var interferences = item.Value;
-                for (int i = 0; i < interferences.Count-1 ; i++) {
-                    foreach(var j in interferences) {
-                        BuildEdges(graph,createdNodes, interferences[i], j);
+                for (int i = 0; i < interferences.Count - 1; i++) {
+                    foreach (var j in interferences) {
+                        BuildEdges(graph, createdNodes, interferences[i], j);
                     }
                 }
             }
@@ -103,7 +105,7 @@ namespace Tastier {
 
         public static Node GetNodeRef(Dictionary<string, Node> createdNodes, string val) {
             Node node;
-            if(createdNodes.ContainsKey(val)){
+            if (createdNodes.ContainsKey(val)) {
                 node = createdNodes[val];
             } else {
                 createdNodes.Add(val, new Node(val));
@@ -111,6 +113,5 @@ namespace Tastier {
             }
             return node;
         }
-
     }
 }

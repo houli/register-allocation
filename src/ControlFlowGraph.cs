@@ -7,13 +7,16 @@ namespace Tastier {
             for (int i = 0; i < blocks.Count; i++) {
                 var lastTuple = blocks[i].statements.Last();
                 BasicBlock foundBlock = null;
+
                 switch (lastTuple.op) {
+                // For a branch the successor is the called block
                 case IROperation.BRANCH:
                     foundBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label, true);
                     blocks[i].successors.Add(foundBlock);
                     foundBlock.predecessors.Add(blocks[i]);
                     break;
 
+                // Branch on false has two successors, one for true, one for false
                 case IROperation.BFALSE:
                     blocks[i].successors.Add(blocks[i + 1]);
                     blocks[i + 1].predecessors.Add(blocks[i]);
@@ -24,10 +27,12 @@ namespace Tastier {
                     break;
 
                 case IROperation.CALL:
+                    // Find the called block
                     var calledBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label + "Body", true);
                     blocks[i].successors.Add(calledBlock);
                     calledBlock.predecessors.Add(blocks[i]);
 
+                    // Find the block containing the functions return tuple
                     var returnBlock = FindBlock(blocks, ((IRTupleLabel)lastTuple).label, false);
                     returnBlock.successors.Add(blocks[i + 1]);
                     blocks[i + 1].predecessors.Add(returnBlock);
@@ -38,6 +43,7 @@ namespace Tastier {
                     break;
 
                 default:
+                    // Otherwise add the next block to the successors
                     blocks[i].successors.Add(blocks[i + 1]);
                     blocks[i + 1].predecessors.Add(blocks[i]);
                     break;

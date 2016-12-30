@@ -1,4 +1,6 @@
 namespace Tastier {
+    // An enum representing the different kinds of operations
+    // for our intermediate representation tuples
     public enum IROperation {
         ADD,
         BFALSE,
